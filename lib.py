@@ -61,6 +61,7 @@ def split_into_x_parts_of_y(data, x, y):
     return res
 
 
+# source: https://eprint.iacr.org/2014/704.pdf page 3,4
 def calculate_inv_of_keys(keys):
     pass
 
