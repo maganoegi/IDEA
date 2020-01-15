@@ -14,6 +14,7 @@ def idea(block, key, mode):
     if mode == 'd':
         Z = generate_decrypt_keys(Z) 
 
+    #  8 Rounds
     for i in range(8):
     # variable names will follow the fourteen-step method 
     # described in the document
@@ -39,6 +40,7 @@ def idea(block, key, mode):
         else:
             X = [eleven, twelve, thirteen, fourteen]
 
+    # Output pre-processing (half-round)    
     X[0] = m_mul(X[0], Z[48])
     X[1] = m_sum(X[1], Z[49])
     X[2] = m_sum(X[2], Z[50])
@@ -51,7 +53,9 @@ def idea(block, key, mode):
 
 
 if __name__ == '__main__':
-
+    # =============================
+    #     Argument Handling
+    # =============================
     args = sys.argv
     if len(args) < 3: 
         Exception("mode, message")
@@ -72,8 +76,14 @@ if __name__ == '__main__':
         Exception("Incorrect parameter")
 
 
+    # =============================
+    #     I.D.E.A
+    # =============================
     result = idea(data, private_key, mode)
 
+    # =============================
+    #     Display
+    # =============================
     if mode == "e":
         print("Key: \t" + private_key)
     else:

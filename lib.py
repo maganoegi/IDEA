@@ -2,11 +2,6 @@ import binascii
 
 two_sixteen = pow(2, 16)
 two_sixteen_plus_1 = two_sixteen + 1
-random_max = pow(2, 128)
-
-def readFile(filename):
-    with open(filename, 'r') as file:
-        return file.read().replace('\n', ' ')
 
 
 def XOR(a, b):

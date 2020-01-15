@@ -16,18 +16,21 @@ python3 idea.py -e lalaland
 ```
 
 which yields: 
-```bash
+
+```
 Key: 	11001100101010000110110010010101110101010111100100011001011111101110110010000011001101010010101100000110011011101001001100111100
 
 Output:	1111100001010110011001011100101000000101110010000100010001011110
 ```    
 
 ## Decoding [ -d ]
-Same format as encoding, but with an additional argument: the key:
-```bash
+Same format as encoding, but with an additional argument: the key
+
+```
 python3 idea.py -d <encoding output> <encoding key>
 ```
 Decoding result:
-```bash
+
+```
 Output: lalaland
 ```
