@@ -32,36 +32,14 @@ def generate_subkeys(data):
     if len(data) != 128:
         raise Exception('generate keys function requires an input of 128 bits, but received {}'.format(len(data)))
     
+
     keys = []
-    for i in range(8):
+    for i in range(7):
         subkeys = split_into_x_parts_of_y(data, 8, 16)
-        keys.append(subkeys[:-2])
+        keys += subkeys
         data = circular_left_shift(data, 25)
-
-
-    # subkeys = split_into_x_parts_of_y(data, 8, 16)
-    # active = subkeys[:-2]
-    # reserve = subkeys[-2:]
-    # keys = [active]
-    # data = circular_left_shift(data, 25)
-
-    # for i in range(1, 9):
-
-    #     subkeys = split_into_x_parts_of_y(data, 8, 16)
-    #     active = reserve + subkeys
-    #     reserve = active[-2:]
-    #     active = active[:-2]
-
-    #     data = ""
-    #     for j in range(len(active)):
-    #         data += active[j]
-    #     data = circular_left_shift(data, 25)
-
-
-    #     keys.append(active)
-
     
-    return keys
+    return keys[:-4]
 
 
 def split_into_x_parts_of_y(data, x, y):
@@ -74,19 +52,32 @@ def split_into_x_parts_of_y(data, x, y):
     return res
 
 
-# source: https://eprint.iacr.org/2014/704.pdf page 3,4
 def generate_decrypt_keys(keys):
     decrypt_keys = []
-    for i in range(len(keys)):
-        row = [
-            int2bits(m_mul_inv(keys[7-i][0], two_sixteen_plus_1)),
-            int2bits(m_sum_inv(keys[7-i][1], two_sixteen)),
-            int2bits(m_sum_inv(keys[7-i][2], two_sixteen)),
-            int2bits(m_mul_inv(keys[7-i][3], two_sixteen_plus_1)),
-            keys[7-i][4],
-            keys[7-i][5]
-        ]
-        decrypt_keys.append(row)
+    for i in range(8):
+        step = i * 6
+        lower_index = 46 - step
+        
+        decrypt_keys.append(m_mul_inv(keys[lower_index + 2], two_sixteen_plus_1))
+
+        tmp1 = 4
+        tmp2 = 3
+        if i == 0:
+            tmp1 = 3
+            tmp2 = 4
+
+        decrypt_keys.append(m_sum_inv(keys[lower_index + tmp1], two_sixteen))
+        decrypt_keys.append(m_sum_inv(keys[lower_index + tmp2], two_sixteen))
+        
+        decrypt_keys.append(m_mul_inv(keys[lower_index + 5], two_sixteen_plus_1))
+        decrypt_keys.append(keys[lower_index])
+        decrypt_keys.append(keys[lower_index + 1])
+
+    decrypt_keys.append(m_mul_inv(keys[0], two_sixteen_plus_1))
+    decrypt_keys.append(m_sum_inv(keys[1], two_sixteen))
+    decrypt_keys.append(m_sum_inv(keys[2], two_sixteen))
+    decrypt_keys.append(m_mul_inv(keys[3], two_sixteen_plus_1))
+
     return decrypt_keys
 
 
@@ -120,10 +111,14 @@ def m_mul_inv(a, m):
     if (x < 0) : 
         x = x + m0 
 
-    return x 
+    bits = bin(x)[2:]
+    return bits.zfill(16)
+
 
 def m_sum_inv(a, m):
-    return m - int(a, 2)
+    res = m - int(a, 2)
+    bits = bin(res)[2:]
+    return bits.zfill(16)
 
 def m_mul(a, b):
     a = int(a, 2) 
@@ -143,34 +138,24 @@ def m_sum(a, b):
 
 def int2bits(val):
     bits = bin(val)[2:]
-    return bits.zfill(16)
+    return bits.zfill(128)
 
 
-# source: https://stackoverflow.com/questions/7396849/convert-binary-to-ascii-and-vice-versa
+def decode_binary_string(s):
+    return ''.join(chr(int(s[i*8:i*8+8],2)) for i in range(len(s)//8))
+
 def str_to_bits(text, encoding='utf-8', errors='surrogatepass'):
     bits = bin(int(binascii.hexlify(text.encode(encoding, errors)), 16))[2:]
     return bits.zfill(8 * ((len(bits) + 7) // 8))
 
-def str_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
-    n = int(bits, 2)
-    return int2bytes(n).decode(encoding, errors)
 
-def int2bytes(i):
-    hex_string = '%x' % i
-    n = len(hex_string)
-    return binascii.unhexlify(hex_string.zfill(n + (n & 1)))
+if __name__ == '__main__':
 
-# source: https://stackoverflow.com/questions/4798654/modular-multiplicative-inverse-function-in-python
-# def egcd(a, b):
-#     if a == 0:
-#         return (b, 0, 1)
-#     else:
-#         g, y, x = egcd(b % a, a)
-#         return (g, x - (b // a) * y, y)
+    assert(circular_left_shift("111100001111000011110000", 5) == "000111100001111000011110")
+    assert(XOR("1001", "0111") == "1110")
+    assert(m_mul("10", "10") == "0000000000000100")
+    assert(m_mul("11111111111111111", "10") == "1111111111111011")
+    assert(m_mul_inv("0001", 2) == 1)
+    assert(m_mul_inv("00000111", 87) == 25)
 
-# def modinv(a, m):
-#     g, x, y = egcd(a, m)
-#     if g != 1:
-#         raise Exception('modular inverse does not exist')
-#     else:
-#         return x % m
+
