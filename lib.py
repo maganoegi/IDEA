@@ -76,8 +76,6 @@ def generate_decrypt_keys(keys):
     return decrypt_keys
 
 
-
-# source: https://www.geeksforgeeks.org/multiplicative-inverse-under-modulo-m/
 def m_mul_inv(a, m):
     m0 = m 
     y = 0
